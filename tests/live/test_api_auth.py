@@ -1105,6 +1105,23 @@ class TestPasswordGrantAuthenticator(ApiKeyBase):
         self.assertEqual(result.account.href, self.acc.href)
         self.assertEqual(claims.get('org'), self.org.href)
 
+    def test_authenticate_with_org_name_key(self):
+        authenticator = PasswordGrantAuthenticator(self.app)
+        result = authenticator.authenticate(self.username, self.password,
+                                            organization_name_key=self.org.name_key)
+
+        self.assertTrue(result.access_token)
+        self.assertTrue(result.refresh_token)
+
+        jwt_auth = JwtAuthenticator(self.app)
+        jwt_result = jwt_auth.authenticate(result.access_token.token)
+
+        self.assertTrue('org' in jwt_result.expanded_jwt['claims'])
+
+        jwt_result_refresh = jwt_auth.authenticate(result.refresh_token.token)
+
+        self.assertTrue('org' in jwt_result_refresh.expanded_jwt['claims'])
+
 
 class TestJwtAuthenticator(ApiKeyBase):
 

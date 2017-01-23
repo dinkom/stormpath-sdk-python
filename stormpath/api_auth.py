@@ -525,7 +525,7 @@ class PasswordGrantAuthenticator(Authenticator):
     """This class should authenticate using login and password.
     It gets authentication tokens for valid credentials.
     """
-    def authenticate(self, username, password, account_store=None, url=None):
+    def authenticate(self, username, password, organization_name_key=None, account_store=None, url=None):
         """Method that authenticates with username and password using
         password grant type.
 
@@ -548,6 +548,12 @@ class PasswordGrantAuthenticator(Authenticator):
             'password': password
         }
 
+        if organization_name_key:
+            if isinstance(organization_name_key, string_types):
+                data['organizationNameKey'] = organization_name_key
+            else:
+                raise TypeError('Unsupported type for organization_name_key.')
+
         if account_store:
             if isinstance(account_store, string_types):
                 data['accountStore'] = account_store
@@ -558,7 +564,7 @@ class PasswordGrantAuthenticator(Authenticator):
 
         try:
             res = self.app._store.executor.request('POST', url, headers=headers, data=data)
-        except StormpathError as err:
+        except StormpathError:
             return None
 
         refresh_token = res['refresh_token'] if 'refresh_token' in res else None
